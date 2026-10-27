@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="300dp"
+    android:layout_width="320dp"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:background="@drawable/menu_bg"
@@ -11,13 +11,11 @@
     <LinearLayout
         android:id="@+id/menu_drag_handle"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="45dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:background="@color/drag_handle_bg"
-        android:paddingStart="8dp"
-        android:paddingEnd="4dp">
-
+        android:paddingStart="8dp">
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -25,131 +23,110 @@
             android:text="@string/menu_title"
             android:textColor="@color/accent_cyan"
             android:textStyle="bold"
-            android:textSize="14sp" />
-
+            android:textSize="16sp" />
         <Button
             android:id="@+id/btn_close"
-            android:layout_width="36dp"
-            android:layout_height="32dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:text="×"
             android:textColor="@color/danger_red"
-            android:background="@android:color/transparent"
-            android:textSize="20sp" />
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:textSize="24sp" />
     </LinearLayout>
 
     <!-- الشفافية -->
-    <TextView
-        android:id="@+id/label_alpha"
+    <TextView android:id="@+id/label_alpha" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:text="@string/label_opacity" android:textColor="#DDDDDD" android:textSize="12sp" />
+    <SeekBar android:id="@+id/seek_alpha" android:layout_width="match_parent" android:layout_height="wrap_content" android:progressTint="@color/accent_cyan" />
+
+    <!-- أزرار التابات -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/label_opacity"
-        android:textColor="@color/text_secondary"
-        android:textSize="12sp"
-        android:layout_marginTop="8dp" />
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp">
+        
+        <Button android:id="@+id/tab_players" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp" android:text="@string/tab_esp_players" android:textSize="11sp" android:backgroundTint="#333333"/>
+        <Button android:id="@+id/tab_loot" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp" android:text="@string/tab_esp_loot" android:textSize="11sp" android:backgroundTint="#222222"/>
+        <Button android:id="@+id/tab_vehicles" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp" android:text="@string/tab_esp_vehicles" android:textSize="11sp" android:backgroundTint="#222222"/>
+        <Button android:id="@+id/tab_aimbot" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp" android:text="@string/tab_aimbot" android:textSize="11sp" android:backgroundTint="#222222"/>
+    </LinearLayout>
 
-    <SeekBar
-        android:id="@+id/seek_alpha"
+    <!-- محتوى التابات -->
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="300dp"
+        android:layout_marginTop="8dp">
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#33FFFFFF"
-        android:layout_marginTop="4dp"
-        android:layout_marginBottom="4dp" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-    <!-- قسم العرض -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/section_visual"
-        android:textColor="@color/accent_cyan"
-        android:textSize="12sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="4dp" />
+            <!-- 1. ESP Players -->
+            <LinearLayout android:id="@+id/layout_players" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="visible">
+                <Switch android:id="@+id/switch_esp_players" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/switch_esp_players" android:textColor="#FFF" android:textStyle="bold"/>
+                <Switch android:id="@+id/switch_snapline_top" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/switch_snapline_top" android:textColor="#CCC" />
+                <Switch android:id="@+id/switch_snapline_bottom" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/switch_snapline_bottom" android:textColor="#CCC" />
+                <Switch android:id="@+id/switch_box" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/switch_box" android:textColor="#CCC" />
+                <Switch android:id="@+id/switch_name" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/switch_name" android:textColor="#CCC" />
+                <Switch android:id="@+id/switch_health" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/switch_health" android:textColor="#CCC" />
+                <Switch android:id="@+id/switch_weapon" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/switch_weapon" android:textColor="#CCC" />
+                <Switch android:id="@+id/switch_skeleton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/switch_skeleton" android:textColor="#CCC" />
+                <Switch android:id="@+id/switch_distance" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/switch_distance" android:textColor="#CCC" />
+                <TextView android:id="@+id/label_max_distance" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/label_max_distance" android:textColor="#DDDDDD" android:textSize="12sp" />
+                <SeekBar android:id="@+id/seek_max_distance" android:layout_width="match_parent" android:layout_height="wrap_content" android:max="299" android:progressTint="@color/accent_cyan"/>
+            </LinearLayout>
 
-    <Switch
-        android:id="@+id/switch_esp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/switch_esp"
-        android:textColor="@color/text_primary"
-        android:textSize="13sp" />
+            <!-- 2. ESP Loot -->
+            <LinearLayout android:id="@+id/layout_loot" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+                <Switch android:id="@+id/switch_esp_loot" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/switch_esp_loot" android:textColor="#FFF" android:textStyle="bold"/>
+                <Switch android:id="@+id/switch_loot_name" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/switch_loot_name" android:textColor="#CCC" />
+                <TextView android:id="@+id/label_loot_size" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/label_loot_size" android:textColor="#DDDDDD" android:textSize="12sp" />
+                <SeekBar android:id="@+id/seek_loot_size" android:layout_width="match_parent" android:layout_height="wrap_content" android:max="30" android:progressTint="@color/accent_cyan"/>
+                <TextView android:id="@+id/label_loot_color" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/label_loot_color" android:textColor="#DDDDDD" android:textSize="12sp" />
+                <SeekBar android:id="@+id/seek_loot_color" android:layout_width="match_parent" android:layout_height="wrap_content" android:max="360" android:progressTint="@color/accent_cyan"/>
+            </LinearLayout>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#33FFFFFF"
-        android:layout_marginTop="4dp"
-        android:layout_marginBottom="4dp" />
+            <!-- 3. ESP Vehicles -->
+            <LinearLayout android:id="@+id/layout_vehicles" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+                <Switch android:id="@+id/switch_esp_vehicles" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/switch_esp_vehicles" android:textColor="#FFF" android:textStyle="bold"/>
+            </LinearLayout>
 
-    <!-- قسم التصويب -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/section_aim"
-        android:textColor="@color/accent_cyan"
-        android:textSize="12sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="4dp" />
+            <!-- 4. Aimbot -->
+            <LinearLayout android:id="@+id/layout_aimbot" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+                <Switch android:id="@+id/switch_aimbot" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/switch_aimbot" android:textColor="#FFF" android:textStyle="bold"/>
+                <Switch android:id="@+id/switch_aimbot_circle" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/switch_aimbot_circle" android:textColor="#CCC" />
+                
+                <TextView android:id="@+id/label_aim_fov" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/label_aim_fov" android:textColor="#DDDDDD" android:textSize="12sp" />
+                <SeekBar android:id="@+id/seek_aim_fov" android:layout_width="match_parent" android:layout_height="wrap_content" android:max="300" android:progressTint="@color/accent_cyan"/> <!-- 1 to 30 scale -->
 
-    <Switch
-        android:id="@+id/switch_aimbot"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/switch_aimbot"
-        android:textColor="@color/text_primary"
-        android:textSize="13sp" />
+                <TextView android:id="@+id/label_aim_bone" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/label_aim_bone" android:textColor="#FFF" android:layout_marginTop="8dp"/>
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <Button android:id="@+id/btn_bone_stomach" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp" android:text="@string/btn_bone_stomach" android:textSize="12sp"/>
+                    <Button android:id="@+id/btn_bone_chest" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp" android:text="@string/btn_bone_chest" android:textSize="12sp"/>
+                    <Button android:id="@+id/btn_bone_head" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp" android:text="@string/btn_bone_head" android:textSize="12sp"/>
+                </LinearLayout>
 
-    <TextView
-        android:id="@+id/label_fov"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/label_fov"
-        android:textColor="@color/text_secondary"
-        android:textSize="12sp" />
+                <TextView android:id="@+id/label_aim_force" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/label_aim_force" android:textColor="#DDDDDD" android:textSize="12sp" android:layout_marginTop="8dp"/>
+                <SeekBar android:id="@+id/seek_aim_force" android:layout_width="match_parent" android:layout_height="wrap_content" android:max="99" android:progressTint="@color/accent_cyan"/>
 
-    <SeekBar
-        android:id="@+id/seek_fov"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+                <Switch android:id="@+id/switch_ignore_bots" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/switch_ignore_bots" android:textColor="#CCC" android:layout_marginTop="8dp"/>
 
-    <TextView
-        android:id="@+id/label_smoothing"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/label_smoothing"
-        android:textColor="@color/text_secondary"
-        android:textSize="12sp" />
+                <TextView android:id="@+id/label_aim_target" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/label_aim_target" android:textColor="#FFF" android:layout_marginTop="8dp"/>
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <Button android:id="@+id/btn_target_any" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp" android:text="@string/btn_target_any" android:textSize="11sp"/>
+                    <Button android:id="@+id/btn_target_closest" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp" android:text="@string/btn_target_closest" android:textSize="11sp"/>
+                    <Button android:id="@+id/btn_target_crosshair" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp" android:text="@string/btn_target_crosshair" android:textSize="11sp"/>
+                </LinearLayout>
 
-    <SeekBar
-        android:id="@+id/seek_smoothing"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+                <TextView android:id="@+id/label_aim_condition" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/label_aim_condition" android:textColor="#FFF" android:layout_marginTop="8dp"/>
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <Button android:id="@+id/btn_condition_scope" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp" android:text="@string/btn_condition_scope" android:textSize="11sp"/>
+                    <Button android:id="@+id/btn_condition_always" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp" android:text="@string/btn_condition_always" android:textSize="11sp"/>
+                </LinearLayout>
+            </LinearLayout>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#33FFFFFF"
-        android:layout_marginTop="4dp"
-        android:layout_marginBottom="4dp" />
-
-    <!-- قسم الهدف -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/section_target"
-        android:textColor="@color/accent_cyan"
-        android:textSize="12sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="4dp" />
-
-    <Button
-        android:id="@+id/btn_bone"
-        android:layout_width="match_parent"
-        android:layout_height="44dp"
-        android:text="@string/target_head"
-        android:textSize="13sp" />
-
+        </LinearLayout>
+    </ScrollView>
 </LinearLayout>
