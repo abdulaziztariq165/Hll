@@ -1,49 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">أداة ألفا XK</string>
-
-    <!-- شاشة البداية -->
     <string name="status_granted">صلاحية العرض فوق التطبيقات: ممنوحة</string>
-    <string name="status_denied">صلاحية العرض فوق التطبيقات: مرفوضة — اضغط على زر المنح</string>
+    <string name="status_denied">صلاحية العرض: مرفوضة — اضغط على زر المنح</string>
     <string name="btn_grant">منح صلاحية العرض</string>
     <string name="btn_start">تشغيل القائمة العائمة</string>
     <string name="btn_stop">إيقاف القائمة العائمة</string>
-
-    <!-- الفقاعة العائمة -->
     <string name="bubble_desc">القائمة العائمة</string>
-
-    <!-- القائمة العائمة -->
     <string name="menu_title">ألفا XK</string>
-    <string name="menu_close">إغلاق</string>
+    
+    <!-- Tabs -->
+    <string name="tab_esp_players">اللاعبين</string>
+    <string name="tab_esp_loot">الأسلحة</string>
+    <string name="tab_esp_vehicles">المركبات</string>
+    <string name="tab_aimbot">التصويب</string>
 
+    <!-- Menu General -->
     <string name="label_opacity">الشفافية: %1$d%%</string>
-    <string name="label_fov">زاوية التصويب: %1$.1f°</string>
-    <string name="label_smoothing">التمليس: %1$d%%</string>
-    <string name="label_sensitivity">الحساسية: %1$d%%</string>
-    <string name="label_distance">المدى الأقصى: %1$d</string>
+    
+    <!-- ESP Players -->
+    <string name="switch_esp_players">تفعيل ESP اللاعبين</string>
+    <string name="switch_snapline_top">خطوط من الأعلى</string>
+    <string name="switch_snapline_bottom">خطوط من الأسفل</string>
+    <string name="switch_box">صندوق حول اللاعب</string>
+    <string name="switch_name">أسماء اللاعبين</string>
+    <string name="switch_health">نسبة الدم</string>
+    <string name="switch_weapon">السلاح المحمول</string>
+    <string name="switch_skeleton">الهيكل العظمي</string>
+    <string name="switch_distance">المسافة</string>
+    <string name="label_max_distance">المسافة القصوى: %1$d م</string>
 
-    <string name="switch_esp">عرض اللاعبين (ESP)</string>
-    <string name="switch_aimbot">التصويب التلقائي</string>
-    <string name="switch_team_filter">استبعاد الفريق نفسه</string>
+    <!-- ESP Loot -->
+    <string name="switch_esp_loot">تفعيل ESP الأسلحة والسكوبات</string>
+    <string name="switch_loot_name">إظهار اسم السلاح</string>
+    <string name="label_loot_size">حجم الخط: %1$d</string>
+    <string name="label_loot_color">لون الخط: %1$d</string>
+    
+    <!-- ESP Vehicles -->
+    <string name="switch_esp_vehicles">تفعيل ESP المركبات</string>
+    
+    <!-- Aimbot -->
+    <string name="switch_aimbot">تفعيل التصويب</string>
+    <string name="switch_aimbot_circle">دائرة التصويب</string>
+    <string name="label_aim_fov">حجم الدائرة: %1$.1f</string>
+    <string name="label_aim_bone">التركيز: %1$s</string>
+    <string name="btn_bone_head">الرأس</string>
+    <string name="btn_bone_chest">الصدر</string>
+    <string name="btn_bone_stomach">البطن</string>
+    <string name="label_aim_force">قوة الجذب: %1$d%%</string>
+    <string name="switch_ignore_bots">تجاهل البوتات</string>
+    <string name="label_aim_target">أفضلية الاستهداف: %1$s</string>
+    <string name="btn_target_any">أي شخص</string>
+    <string name="btn_target_closest">الأقرب</string>
+    <string name="btn_target_crosshair">لمنتصف الدائرة</string>
+    <string name="label_aim_condition">التصويب أثناء: %1$s</string>
+    <string name="btn_condition_scope">فتح السكوب فقط</string>
+    <string name="btn_condition_always">كل الحالات</string>
 
-    <string name="target_head">الهدف: الرأس</string>
-    <string name="target_chest">الهدف: الصدر</string>
-
-    <string name="section_aim">إعدادات التصويب</string>
-    <string name="section_visual">الإعدادات البصرية</string>
-    <string name="section_target">هدف التصويب</string>
-
-    <!-- الإشعار -->
+    <!-- Notifications -->
     <string name="notif_channel_name">خدمة القائمة العائمة</string>
-    <string name="notif_channel_desc">تُبقي القائمة العائمة نشطة فوق اللعبة</string>
+    <string name="notif_channel_desc">تبقي القائمة نشطة</string>
     <string name="notif_title">أداة ألفا XK</string>
     <string name="notif_text">القائمة العائمة نشطة</string>
-    <string name="notif_stop">إيقاف</string>
-
-    <!-- رسائل -->
-    <string name="msg_no_permission">يجب منح صلاحية العرض فوق التطبيقات أولاً</string>
-    <string name="msg_service_started">تم تشغيل القائمة العائمة</string>
-    <string name="msg_service_stopped">تم إيقاف القائمة العائمة</string>
-    <string name="msg_host_not_connected">لم يتم الاتصال بمحرك الأداة على الكمبيوتر</string>
-    <string name="msg_offsets_stale">ملف الإزاحات قديم — حدّثه بعد تحديث اللعبة</string>
+    <string name="msg_service_started">تم التشغيل</string>
+    <string name="msg_service_stopped">تم الإيقاف</string>
+    <string name="msg_no_permission">يجب منح الصلاحية أولاً</string>
 </resources>
