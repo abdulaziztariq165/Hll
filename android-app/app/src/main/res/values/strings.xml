@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">أداة ألفا XK</string>
+
+    <!-- شاشة البداية -->
+    <string name="status_granted">صلاحية العرض فوق التطبيقات: ممنوحة</string>
+    <string name="status_denied">صلاحية العرض فوق التطبيقات: مرفوضة — اضغط على زر المنح</string>
+    <string name="btn_grant">منح صلاحية العرض</string>
+    <string name="btn_start">تشغيل القائمة العائمة</string>
+    <string name="btn_stop">إيقاف القائمة العائمة</string>
+
+    <!-- الفقاعة العائمة -->
+    <string name="bubble_desc">القائمة العائمة</string>
+
+    <!-- القائمة العائمة -->
+    <string name="menu_title">ألفا XK</string>
+    <string name="menu_close">إغلاق</string>
+
+    <string name="label_opacity">الشفافية: %1$d%%</string>
+    <string name="label_fov">زاوية التصويب: %1$.1f°</string>
+    <string name="label_smoothing">التمليس: %1$d%%</string>
+    <string name="label_sensitivity">الحساسية: %1$d%%</string>
+    <string name="label_distance">المدى الأقصى: %1$d</string>
+
+    <string name="switch_esp">عرض اللاعبين (ESP)</string>
+    <string name="switch_aimbot">التصويب التلقائي</string>
+    <string name="switch_team_filter">استبعاد الفريق نفسه</string>
+
+    <string name="target_head">الهدف: الرأس</string>
+    <string name="target_chest">الهدف: الصدر</string>
+
+    <string name="section_aim">إعدادات التصويب</string>
+    <string name="section_visual">الإعدادات البصرية</string>
+    <string name="section_target">هدف التصويب</string>
+
+    <!-- الإشعار -->
+    <string name="notif_channel_name">خدمة القائمة العائمة</string>
+    <string name="notif_channel_desc">تُبقي القائمة العائمة نشطة فوق اللعبة</string>
+    <string name="notif_title">أداة ألفا XK</string>
+    <string name="notif_text">القائمة العائمة نشطة</string>
+    <string name="notif_stop">إيقاف</string>
+
+    <!-- رسائل -->
+    <string name="msg_no_permission">يجب منح صلاحية العرض فوق التطبيقات أولاً</string>
+    <string name="msg_service_started">تم تشغيل القائمة العائمة</string>
+    <string name="msg_service_stopped">تم إيقاف القائمة العائمة</string>
+    <string name="msg_host_not_connected">لم يتم الاتصال بمحرك الأداة على الكمبيوتر</string>
+    <string name="msg_offsets_stale">ملف الإزاحات قديم — حدّثه بعد تحديث اللعبة</string>
+</resources>
