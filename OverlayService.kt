@@ -3,10 +3,11 @@ package com.alphaxk.pubgtool
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.graphics.Color
 import android.graphics.PixelFormat
+import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.IBinder
 import android.view.Gravity
@@ -15,6 +16,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.Switch
 import android.widget.TextView
@@ -26,21 +28,31 @@ class OverlayService : Service() {
     private lateinit var windowManager: WindowManager
     private var bubbleView: View? = null
     private var menuView: View? = null
+
     private lateinit var bubbleParams: WindowManager.LayoutParams
     private lateinit var menuParams: WindowManager.LayoutParams
+
     private var config = ToolConfig()
 
-    private var bubbleInitX = 0
-    private var bubbleInitY = 0
-    private var bubbleTouchX = 0f
-    private var bubbleTouchY = 0f
+    private var bubbleInitX = 0; private var bubbleInitY = 0
+    private var bubbleTouchX = 0f; private var bubbleTouchY = 0f
     private var bubbleDragging = false
 
-    private var menuInitX = 0
-    private var menuInitY = 0
-    private var menuTouchX = 0f
-    private var menuTouchY = 0f
+    private var menuInitX = 0; private var menuInitY = 0
+    private var menuTouchX = 0f; private var menuTouchY = 0f
     private var menuDragging = false
+
+    // Tabs containers
+    private lateinit var layoutPlayers: View
+    private lateinit var layoutLoot: View
+    private lateinit var layoutVehicles: View
+    private lateinit var layoutAimbot: View
+
+    // Tab buttons
+    private lateinit var tabPlayers: Button
+    private lateinit var tabLoot: Button
+    private lateinit var tabVehicles: Button
+    private lateinit var tabAimbot: Button
 
     companion object {
         private const val CHANNEL_ID = "alphaxk_overlay"
@@ -68,87 +80,48 @@ class OverlayService : Service() {
     override fun onDestroy() {
         bubbleView?.let { runCatching { windowManager.removeView(it) } }
         menuView?.let { runCatching { windowManager.removeView(it) } }
-        bubbleView = null
-        menuView = null
         super.onDestroy()
     }
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val ch = NotificationChannel(
-                CHANNEL_ID,
-                getString(R.string.notif_channel_name),
-                NotificationManager.IMPORTANCE_LOW
-            ).apply {
-                description = getString(R.string.notif_channel_desc)
-            }
+            val ch = NotificationChannel(CHANNEL_ID, getString(R.string.notif_channel_name), NotificationManager.IMPORTANCE_LOW)
             getSystemService(NotificationManager::class.java).createNotificationChannel(ch)
         }
     }
 
     private fun buildNotification(): Notification {
-        val openIntent = PendingIntent.getActivity(
-            this, 0,
-            Intent(this, MainActivity::class.java),
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(getString(R.string.notif_title))
             .setContentText(getString(R.string.notif_text))
             .setSmallIcon(android.R.drawable.ic_menu_manage)
-            .setContentIntent(openIntent)
             .setOngoing(true)
             .build()
     }
 
-    private fun overlayType(): Int =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-        else
-            @Suppress("DEPRECATION")
-            WindowManager.LayoutParams.TYPE_PHONE
-
-    private fun overlayFlags(): Int =
-        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+    private fun overlayType(): Int = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY else WindowManager.LayoutParams.TYPE_PHONE
+    private fun overlayFlags(): Int = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
 
     private fun createBubble() {
         val bubble = LayoutInflater.from(this).inflate(R.layout.floating_bubble, null)
         bubbleView = bubble
         bubbleParams = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT,
             overlayType(), overlayFlags(), PixelFormat.TRANSLUCENT
-        ).apply {
-            gravity = Gravity.TOP or Gravity.START
-            x = 100; y = 300
-        }
+        ).apply { gravity = Gravity.TOP or Gravity.START; x = 100; y = 300 }
 
         bubble.setOnTouchListener { _, event ->
             when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    bubbleInitX = bubbleParams.x
-                    bubbleInitY = bubbleParams.y
-                    bubbleTouchX = event.rawX
-                    bubbleTouchY = event.rawY
-                    bubbleDragging = false
-                    true
-                }
+                MotionEvent.ACTION_DOWN -> { bubbleInitX = bubbleParams.x; bubbleInitY = bubbleParams.y; bubbleTouchX = event.rawX; bubbleTouchY = event.rawY; bubbleDragging = false; true }
                 MotionEvent.ACTION_MOVE -> {
-                    val dx = event.rawX - bubbleTouchX
-                    val dy = event.rawY - bubbleTouchY
+                    val dx = event.rawX - bubbleTouchX; val dy = event.rawY - bubbleTouchY
                     if (abs(dx) > DRAG_THRESHOLD || abs(dy) > DRAG_THRESHOLD) {
-                        bubbleDragging = true
-                        bubbleParams.x = bubbleInitX + dx.toInt()
-                        bubbleParams.y = bubbleInitY + dy.toInt()
+                        bubbleDragging = true; bubbleParams.x = bubbleInitX + dx.toInt(); bubbleParams.y = bubbleInitY + dy.toInt()
                         windowManager.updateViewLayout(bubble, bubbleParams)
                     }
                     true
                 }
-                MotionEvent.ACTION_UP -> {
-                    if (!bubbleDragging) toggleMenu()
-                    true
-                }
+                MotionEvent.ACTION_UP -> { if (!bubbleDragging) toggleMenu(); true }
                 else -> false
             }
         }
@@ -156,160 +129,98 @@ class OverlayService : Service() {
     }
 
     private fun toggleMenu() {
-        menuView?.let { mv ->
-            mv.visibility = if (mv.visibility == View.VISIBLE) View.GONE else View.VISIBLE
-        }
+        menuView?.let { mv -> mv.visibility = if (mv.visibility == View.VISIBLE) View.GONE else View.VISIBLE }
     }
 
     private fun createMenu() {
         val menu = LayoutInflater.from(this).inflate(R.layout.floating_menu, null)
-        menuView = menu
-        menu.visibility = View.GONE
+        menuView = menu; menu.visibility = View.GONE
 
         menuParams = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT,
             overlayType(), overlayFlags(), PixelFormat.TRANSLUCENT
-        ).apply {
-            gravity = Gravity.TOP or Gravity.START
-            x = 150; y = 350
-        }
+        ).apply { gravity = Gravity.TOP or Gravity.START; x = 150; y = 350 }
 
         val dragHandle = menu.findViewById<View>(R.id.menu_drag_handle)
         dragHandle.setOnTouchListener { _, event ->
             when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    menuInitX = menuParams.x
-                    menuInitY = menuParams.y
-                    menuTouchX = event.rawX
-                    menuTouchY = event.rawY
-                    menuDragging = false
-                    true
-                }
+                MotionEvent.ACTION_DOWN -> { menuInitX = menuParams.x; menuInitY = menuParams.y; menuTouchX = event.rawX; menuTouchY = event.rawY; menuDragging = false; true }
                 MotionEvent.ACTION_MOVE -> {
-                    val dx = event.rawX - menuTouchX
-                    val dy = event.rawY - menuTouchY
+                    val dx = event.rawX - menuTouchX; val dy = event.rawY - menuTouchY
                     if (abs(dx) > DRAG_THRESHOLD || abs(dy) > DRAG_THRESHOLD) {
-                        menuDragging = true
-                        menuParams.x = menuInitX + dx.toInt()
-                        menuParams.y = menuInitY + dy.toInt()
+                        menuDragging = true; menuParams.x = menuInitX + dx.toInt(); menuParams.y = menuInitY + dy.toInt()
                         windowManager.updateViewLayout(menu, menuParams)
                     }
                     true
                 }
-                MotionEvent.ACTION_UP -> true
-                else -> false
+                MotionEvent.ACTION_UP -> true; else -> false
             }
         }
 
-        // الشفافية
+        // -- Tabs Links --
+        layoutPlayers = menu.findViewById(R.id.layout_players)
+        layoutLoot = menu.findViewById(R.id.layout_loot)
+        layoutVehicles = menu.findViewById(R.id.layout_vehicles)
+        layoutAimbot = menu.findViewById(R.id.layout_aimbot)
+
+        tabPlayers = menu.findViewById(R.id.tab_players)
+        tabLoot = menu.findViewById(R.id.tab_loot)
+        tabVehicles = menu.findViewById(R.id.tab_vehicles)
+        tabAimbot = menu.findViewById(R.id.tab_aimbot)
+
+        // Tabs Click Listeners
+        tabPlayers.setOnClickListener { showTab(0) }
+        tabLoot.setOnClickListener { showTab(1) }
+        tabVehicles.setOnClickListener { showTab(2) }
+        tabAimbot.setOnClickListener { showTab(3) }
+        showTab(0) // Default
+
+        // -- Alpha --
         val alphaSeek = menu.findViewById<SeekBar>(R.id.seek_alpha)
         val alphaLabel = menu.findViewById<TextView>(R.id.label_alpha)
-        alphaSeek.progress = (((config.menuAlpha - MENU_MIN_ALPHA) /
-                (MENU_MAX_ALPHA - MENU_MIN_ALPHA)) * 100f).toInt().coerceIn(0, 100)
-        alphaLabel.text = getString(R.string.label_opacity, (config.menuAlpha * 100).toInt())
         menu.alpha = config.menuAlpha
-
+        alphaSeek.progress = (((config.menuAlpha - MENU_MIN_ALPHA) / (MENU_MAX_ALPHA - MENU_MIN_ALPHA)) * 100f).toInt().coerceIn(0, 100)
+        alphaLabel.text = getString(R.string.label_opacity, (config.menuAlpha * 100).toInt())
         alphaSeek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (!fromUser) return
                 val a = MENU_MIN_ALPHA + (progress / 100f) * (MENU_MAX_ALPHA - MENU_MIN_ALPHA)
-                config.menuAlpha = a
-                menu.alpha = a
-                alphaLabel.text = getString(R.string.label_opacity, (a * 100).toInt())
+                config.menuAlpha = a; menu.alpha = a; alphaLabel.text = getString(R.string.label_opacity, (a * 100).toInt())
                 ConfigStore.save(config)
             }
             override fun onStartTrackingTouch(sb: SeekBar?) {}
             override fun onStopTrackingTouch(sb: SeekBar?) {}
         })
 
-        // ESP
-        val espSwitch = menu.findViewById<Switch>(R.id.switch_esp)
-        espSwitch.isChecked = config.espEnabled
-        espSwitch.setOnCheckedChangeListener { _, c ->
-            config.espEnabled = c
-            ConfigStore.save(config)
-            notifyConfigChanged()
+        // ==========================================
+        // 1. TAB ESP PLAYERS SETUP
+        // ==========================================
+        menu.findViewById<Switch>(R.id.switch_esp_players).apply {
+            isChecked = config.espPlayersEnabled
+            setOnCheckedChangeListener { _, c -> config.espPlayersEnabled = c; ConfigStore.save(config); notifyConfigChanged() }
         }
-
-        // Aimbot
-        val aimSwitch = menu.findViewById<Switch>(R.id.switch_aimbot)
-        aimSwitch.isChecked = config.aimbotEnabled
-        aimSwitch.setOnCheckedChangeListener { _, c ->
-            config.aimbotEnabled = c
-            ConfigStore.save(config)
-            notifyConfigChanged()
+        menu.findViewById<Switch>(R.id.switch_snapline_top).apply {
+            isChecked = config.espSnaplineTop
+            setOnCheckedChangeListener { _, c -> config.espSnaplineTop = c; ConfigStore.save(config); notifyConfigChanged() }
         }
-
-        // FOV
-        val fovSeek = menu.findViewById<SeekBar>(R.id.seek_fov)
-        val fovLabel = menu.findViewById<TextView>(R.id.label_fov)
-        fovSeek.progress = (((config.aimFov - 1f) / 19f) * 100f).toInt().coerceIn(0, 100)
-        fovLabel.text = getString(R.string.label_fov, config.aimFov)
-        fovSeek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(sb: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (!fromUser) return
-                val f = 1f + (progress / 100f) * 19f
-                config.aimFov = f
-                fovLabel.text = getString(R.string.label_fov, f)
-                ConfigStore.save(config)
-                notifyConfigChanged()
-            }
-            override fun onStartTrackingTouch(sb: SeekBar?) {}
-            override fun onStopTrackingTouch(sb: SeekBar?) {}
-        })
-
-        // Smoothing
-        val smoothSeek = menu.findViewById<SeekBar>(R.id.seek_smoothing)
-        val smoothLabel = menu.findViewById<TextView>(R.id.label_smoothing)
-        smoothSeek.progress = (config.aimSmoothing * 100f).toInt().coerceIn(0, 100)
-        smoothLabel.text = getString(R.string.label_smoothing, (config.aimSmoothing * 100).toInt())
-        smoothSeek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(sb: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (!fromUser) return
-                val s = progress / 100f
-                config.aimSmoothing = s
-                smoothLabel.text = getString(R.string.label_smoothing, (s * 100).toInt())
-                ConfigStore.save(config)
-                notifyConfigChanged()
-            }
-            override fun onStartTrackingTouch(sb: SeekBar?) {}
-            override fun onStopTrackingTouch(sb: SeekBar?) {}
-        })
-
-        // Bone
-        val boneBtn = menu.findViewById<Button>(R.id.btn_bone)
-        boneBtn.text = getString(
-            if (config.bonePriority == 1) R.string.target_head else R.string.target_chest
-        )
-        boneBtn.setOnClickListener {
-            config.bonePriority = if (config.bonePriority == 1) 0 else 1
-            boneBtn.text = getString(
-                if (config.bonePriority == 1) R.string.target_head else R.string.target_chest
-            )
-            ConfigStore.save(config)
-            notifyConfigChanged()
+        menu.findViewById<Switch>(R.id.switch_snapline_bottom).apply {
+            isChecked = config.espSnaplineBottom
+            setOnCheckedChangeListener { _, c -> config.espSnaplineBottom = c; ConfigStore.save(config); notifyConfigChanged() }
         }
-
-        menu.findViewById<Button>(R.id.btn_close).setOnClickListener {
-            menu.visibility = View.GONE
+        menu.findViewById<Switch>(R.id.switch_box).apply {
+            isChecked = config.espBox
+            setOnCheckedChangeListener { _, c -> config.espBox = c; ConfigStore.save(config); notifyConfigChanged() }
         }
-
-        windowManager.addView(menu, menuParams)
-    }
-
-    private fun notifyConfigChanged() {
-        val intent = Intent(ACTION_CONFIG_CHANGED).apply {
-            setPackage(packageName)
-            putExtra("esp", config.espEnabled)
-            putExtra("aimbot", config.aimbotEnabled)
-            putExtra("fov", config.aimFov)
-            putExtra("smoothing", config.aimSmoothing)
-            putExtra("sensitivity", config.aimSensitivity)
-            putExtra("bone", config.bonePriority)
-            putExtra("team", config.teamFilter)
-            putExtra("distance", config.maxDistance)
+        menu.findViewById<Switch>(R.id.switch_name).apply {
+            isChecked = config.espName
+            setOnCheckedChangeListener { _, c -> config.espName = c; ConfigStore.save(config); notifyConfigChanged() }
         }
-        sendBroadcast(intent)
-    }
-}
+        menu.findViewById<Switch>(R.id.switch_health).apply {
+            isChecked = config.espHealth
+            setOnCheckedChangeListener { _, c -> config.espHealth = c; ConfigStore.save(config); notifyConfigChanged() }
+        }
+        menu.findViewById<Switch>(R.id.switch_weapon).apply {
+            isChecked = config.espWeapon
+            setOnCheckedChangeListener { _, c -> config.espWeapon = c; ConfigStore.save(config); notifyConfigChanged() }
+        }
+        menu.findViewById<Switch
