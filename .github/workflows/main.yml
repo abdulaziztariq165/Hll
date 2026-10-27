@@ -1,0 +1,489 @@
+name: Build AlphaXK APK
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: ''
+
+      - name: Generate Full Android Project
+        run: |
+          mkdir -p android-app/app/src/main/java/com/alphaxk/pubgtool
+          mkdir -p android-app/app/src/main/res/layout
+          mkdir -p android-app/app/src/main/res/values
+          mkdir -p android-app/app/src/main/res/drawable
+          mkdir -p android-app/app/src/main/res/mipmap-anydpi-v26
+
+          cat << 'EOF' > android-app/settings.gradle
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          rootProject.name = "AlphaXKTool"
+          include ':app'
+          EOF
+
+          cat << 'EOF' > android-app/build.gradle
+          plugins {
+              id 'com.android.application' version '8.2.2' apply false
+              id 'org.jetbrains.kotlin.android' version '1.9.22' apply false
+          }
+          EOF
+
+          cat << 'EOF' > android-app/gradle.properties
+          org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+          android.useAndroidX=true
+          kotlin.code.style=official
+          android.nonTransitiveRClass=true
+          EOF
+
+          cat << 'EOF' > android-app/app/build.gradle
+          plugins {
+              id 'com.android.application'
+              id 'org.jetbrains.kotlin.android'
+          }
+          android {
+              namespace 'com.alphaxk.pubgtool'
+              compileSdk 34
+              defaultConfig {
+                  applicationId "com.alphaxk.pubgtool"
+                  minSdk 23
+                  targetSdk 34
+                  versionCode 1
+                  versionName "1.0"
+              }
+              buildTypes {
+                  release {
+                      minifyEnabled false
+                  }
+              }
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+              kotlinOptions { jvmTarget = '17' }
+          }
+          dependencies {
+              implementation 'androidx.appcompat:appcompat:1.6.1'
+              implementation 'androidx.core:core-ktx:1.12.0'
+              implementation 'com.google.android.material:material:1.11.0'
+          }
+          EOF
+
+          cat << 'EOF' > android-app/app/src/main/AndroidManifest.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+              <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+              <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+              <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+              <application
+                  android:allowBackup="false"
+                  android:icon="@mipmap/ic_launcher"
+                  android:label="@string/app_name"
+                  android:theme="@style/Theme.AlphaXK">
+                  <activity android:name=".MainActivity" android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+                  <service
+                      android:name=".OverlayService"
+                      android:enabled="true"
+                      android:exported="false"
+                      android:foregroundServiceType="specialUse">
+                      <property
+                          android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                          android:value="Floating control panel" />
+                  </service>
+                  <receiver android:name=".ConfigReceiver" android:exported="false">
+                      <intent-filter>
+                          <action android:name="com.alphaxk.pubgtool.CONFIG_CHANGED" />
+                      </intent-filter>
+                  </receiver>
+              </application>
+          </manifest>
+          EOF
+
+          cat << 'EOF' > android-app/app/src/main/res/values/strings.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <string name="app_name">أداة ألفا XK</string>
+              <string name="status_granted">صلاحية العرض فوق التطبيقات: ممنوحة</string>
+              <string name="status_denied">صلاحية العرض: مرفوضة — اضغط على زر المنح</string>
+              <string name="btn_grant">منح صلاحية العرض</string>
+              <string name="btn_start">تشغيل القائمة العائمة</string>
+              <string name="btn_stop">إيقاف القائمة العائمة</string>
+              <string name="bubble_desc">القائمة العائمة</string>
+              <string name="menu_title">ألفا XK</string>
+              <string name="label_opacity">الشفافية: %1$d%%</string>
+              <string name="label_fov">زاوية التصويب: %1$.1f°</string>
+              <string name="label_smoothing">التمليس: %1$d%%</string>
+              <string name="switch_esp">عرض اللاعبين (ESP)</string>
+              <string name="switch_aimbot">التصويب التلقائي</string>
+              <string name="target_head">الهدف: الرأس</string>
+              <string name="target_chest">الهدف: الصدر</string>
+              <string name="section_aim">إعدادات التصويب</string>
+              <string name="section_visual">الإعدادات البصرية</string>
+              <string name="section_target">هدف التصويب</string>
+              <string name="notif_channel_name">خدمة القائمة العائمة</string>
+              <string name="notif_channel_desc">تبقي القائمة نشطة</string>
+              <string name="notif_title">أداة ألفا XK</string>
+              <string name="notif_text">القائمة العائمة نشطة</string>
+              <string name="msg_service_started">تم التشغيل</string>
+              <string name="msg_service_stopped">تم الإيقاف</string>
+              <string name="msg_no_permission">يجب منح الصلاحية أولاً</string>
+          </resources>
+          EOF
+
+          cat << 'EOF' > android-app/app/src/main/res/values/styles.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="Theme.AlphaXK" parent="Theme.AppCompat.DayNight.NoActionBar">
+                  <item name="android:windowBackground">#FF0D0D1A</item>
+                  <item name="android:statusBarColor">#FF0D0D1A</item>
+              </style>
+          </resources>
+          EOF
+
+          cat << 'EOF' > android-app/app/src/main/res/drawable/menu_bg.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+              <solid android:color="#EE1A1A2E" />
+              <corners android:radius="12dp" />
+              <stroke android:width="1dp" android:color="#5500E5FF" />
+          </shape>
+          EOF
+
+          cat << 'EOF' > android-app/app/src/main/res/drawable/bubble_bg.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+              <solid android:color="#CC1A1A2E" />
+              <stroke android:width="2dp" android:color="#FF00E5FF" />
+          </shape>
+          EOF
+
+          cat << 'EOF' > android-app/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+              <background android:drawable="@android:color/black" />
+              <foreground android:drawable="@android:drawable/ic_menu_manage" />
+          </adaptive-icon>
+          EOF
+
+          cat << 'EOF' > android-app/app/src/main/res/layout/activity_main.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent" android:layout_height="match_parent"
+              android:orientation="vertical" android:padding="32dp" android:gravity="center_vertical"
+              android:background="#FF0D0D1A" android:layoutDirection="rtl">
+              <TextView android:id="@+id/status_text" android:layout_width="match_parent"
+                  android:layout_height="wrap_content" android:text="@string/status_denied"
+                  android:textColor="#DDDDDD" android:layout_marginBottom="24dp" />
+              <Button android:id="@+id/btn_grant" android:layout_width="match_parent"
+                  android:layout_height="wrap_content" android:text="@string/btn_grant" android:layout_marginBottom="12dp" />
+              <Button android:id="@+id/btn_start" android:layout_width="match_parent"
+                  android:layout_height="wrap_content" android:text="@string/btn_start" android:layout_marginBottom="12dp" />
+              <Button android:id="@+id/btn_stop" android:layout_width="match_parent"
+                  android:layout_height="wrap_content" android:text="@string/btn_stop" />
+          </LinearLayout>
+          EOF
+
+          cat << 'EOF' > android-app/app/src/main/res/layout/floating_bubble.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="56dp" android:layout_height="56dp">
+              <ImageView android:layout_width="match_parent" android:layout_height="match_parent"
+                  android:background="@drawable/bubble_bg" android:padding="12dp"
+                  android:src="@android:drawable/ic_menu_manage" />
+          </FrameLayout>
+          EOF
+
+          cat << 'EOF' > android-app/app/src/main/res/layout/floating_menu.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="300dp" android:layout_height="wrap_content"
+              android:orientation="vertical" android:background="@drawable/menu_bg"
+              android:padding="12dp" android:layoutDirection="rtl">
+              <LinearLayout android:id="@+id/menu_drag_handle" android:layout_width="match_parent"
+                  android:layout_height="40dp" android:orientation="horizontal"
+                  android:gravity="center_vertical" android:background="#2200E5FF" android:paddingStart="8dp">
+                  <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                      android:layout_weight="1" android:text="@string/menu_title" android:textColor="#FF00E5FF" android:textStyle="bold" />
+                  <Button android:id="@+id/btn_close" android:layout_width="36dp" android:layout_height="32dp"
+                      android:text="×" android:textColor="#FFFF4444" android:background="@android:color/transparent" />
+              </LinearLayout>
+              <TextView android:id="@+id/label_alpha" android:layout_width="match_parent"
+                  android:layout_height="wrap_content" android:text="@string/label_opacity" android:textColor="#DDDDDD" android:layout_marginTop="8dp" />
+              <SeekBar android:id="@+id/seek_alpha" android:layout_width="match_parent" android:layout_height="wrap_content" />
+              <Switch android:id="@+id/switch_esp" android:layout_width="match_parent"
+                  android:layout_height="wrap_content" android:text="@string/switch_esp" android:textColor="#FFFFFF" />
+              <Switch android:id="@+id/switch_aimbot" android:layout_width="match_parent"
+                  android:layout_height="wrap_content" android:text="@string/switch_aimbot" android:textColor="#FFFFFF" />
+              <TextView android:id="@+id/label_fov" android:layout_width="match_parent"
+                  android:layout_height="wrap_content" android:text="@string/label_fov" android:textColor="#DDDDDD" />
+              <SeekBar android:id="@+id/seek_fov" android:layout_width="match_parent" android:layout_height="wrap_content" />
+              <TextView android:id="@+id/label_smoothing" android:layout_width="match_parent"
+                  android:layout_height="wrap_content" android:text="@string/label_smoothing" android:textColor="#DDDDDD" />
+              <SeekBar android:id="@+id/seek_smoothing" android:layout_width="match_parent" android:layout_height="wrap_content" />
+              <Button android:id="@+id/btn_bone" android:layout_width="match_parent"
+                  android:layout_height="44dp" android:text="@string/target_head" />
+          </LinearLayout>
+          EOF
+
+          cat << 'EOF' > android-app/app/src/main/java/com/alphaxk/pubgtool/ConfigStore.kt
+          package com.alphaxk.pubgtool
+          import android.content.Context
+          import android.content.SharedPreferences
+          data class ToolConfig(
+              var espEnabled: Boolean = true, var aimbotEnabled: Boolean = false,
+              var aimFov: Float = 6.0f, var aimSmoothing: Float = 0.85f,
+              var aimSensitivity: Float = 0.35f, var bonePriority: Int = 1,
+              var teamFilter: Int = -1, var maxDistance: Int = 40000, var menuAlpha: Float = 0.85f
+          )
+          object ConfigStore {
+              private const val PREFS = "alphaxk_tool"
+              private var prefs: SharedPreferences? = null
+              fun init(context: Context) { if (prefs == null) prefs = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE) }
+              fun load(): ToolConfig {
+                  val p = prefs ?: return ToolConfig()
+                  return ToolConfig(p.getBoolean("esp", true), p.getBoolean("aimbot", false), p.getFloat("fov", 6.0f), p.getFloat("smoothing", 0.85f), p.getFloat("sensitivity", 0.35f), p.getInt("bone", 1), p.getInt("team", -1), p.getInt("distance", 40000), p.getFloat("alpha", 0.85f))
+              }
+              fun save(cfg: ToolConfig) {
+                  prefs?.edit()?.putBoolean("esp", cfg.espEnabled)?.putBoolean("aimbot", cfg.aimbotEnabled)?.putFloat("fov", cfg.aimFov)?.putFloat("smoothing", cfg.aimSmoothing)?.putFloat("sensitivity", cfg.aimSensitivity)?.putInt("bone", cfg.bonePriority)?.putInt("team", cfg.teamFilter)?.putInt("distance", cfg.maxDistance)?.putFloat("alpha", cfg.menuAlpha)?.apply()
+              }
+          }
+          EOF
+
+          cat << 'EOF' > android-app/app/src/main/java/com/alphaxk/pubgtool/ConfigReceiver.kt
+          package com.alphaxk.pubgtool
+          import android.content.BroadcastReceiver
+          import android.content.Context
+          import android.content.Intent
+          class ConfigReceiver : BroadcastReceiver() {
+              override fun onReceive(context: Context, intent: Intent) {
+                  if (intent.action != OverlayService.ACTION_CONFIG_CHANGED) return
+                  ConfigStore.init(context)
+                  val cfg = ConfigStore.load()
+                  cfg.espEnabled = intent.getBooleanExtra("esp", cfg.espEnabled)
+                  cfg.aimbotEnabled = intent.getBooleanExtra("aimbot", cfg.aimbotEnabled)
+                  cfg.aimFov = intent.getFloatExtra("fov", cfg.aimFov)
+                  cfg.aimSmoothing = intent.getFloatExtra("smoothing", cfg.aimSmoothing)
+                  cfg.bonePriority = intent.getIntExtra("bone", cfg.bonePriority)
+                  ConfigStore.save(cfg)
+              }
+          }
+          EOF
+
+          cat << 'EOF' > android-app/app/src/main/java/com/alphaxk/pubgtool/MainActivity.kt
+          package com.alphaxk.pubgtool
+          import android.content.Intent
+          import android.net.Uri
+          import android.os.Build
+          import android.os.Bundle
+          import android.provider.Settings
+          import android.widget.Button
+          import android.widget.TextView
+          import android.widget.Toast
+          import androidx.appcompat.app.AppCompatActivity
+          import androidx.core.content.ContextCompat
+          class MainActivity : AppCompatActivity() {
+              private val overlayRequestCode = 1001
+              private lateinit var statusText: TextView
+              override fun onCreate(savedInstanceState: Bundle?) {
+                  super.onCreate(savedInstanceState)
+                  ConfigStore.init(this)
+                  setContentView(R.layout.activity_main)
+                  statusText = findViewById(R.id.status_text)
+                  findViewById<Button>(R.id.btn_grant).setOnClickListener { requestOverlayPermission() }
+                  findViewById<Button>(R.id.btn_start).setOnClickListener {
+                      if (canDrawOverlays()) { startOverlayService(); Toast.makeText(this, R.string.msg_service_started, Toast.LENGTH_SHORT).show() }
+                      else { Toast.makeText(this, R.string.msg_no_permission, Toast.LENGTH_LONG).show(); requestOverlayPermission() }
+                  }
+                  findViewById<Button>(R.id.btn_stop).setOnClickListener {
+                      stopService(Intent(this, OverlayService::class.java))
+                      Toast.makeText(this, R.string.msg_service_stopped, Toast.LENGTH_SHORT).show(); updateStatus()
+                  }
+                  updateStatus()
+              }
+              override fun onResume() { super.onResume(); updateStatus() }
+              private fun updateStatus() { statusText.text = getString(if (canDrawOverlays()) R.string.status_granted else R.string.status_denied) }
+              private fun canDrawOverlays(): Boolean = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) Settings.canDrawOverlays(this) else true
+              private fun requestOverlayPermission() { if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) startActivityForResult(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName")), overlayRequestCode) }
+              private fun startOverlayService() { ContextCompat.startForegroundService(this, Intent(this, OverlayService::class.java)) }
+          }
+          EOF
+
+          cat << 'EOF' > android-app/app/src/main/java/com/alphaxk/pubgtool/OverlayService.kt
+          package com.alphaxk.pubgtool
+          import android.app.*
+          import android.content.Intent
+          import android.graphics.PixelFormat
+          import android.os.Build
+          import android.os.IBinder
+          import android.view.*
+          import android.widget.*
+          import androidx.core.app.NotificationCompat
+          import kotlin.math.abs
+          class OverlayService : Service() {
+              private lateinit var windowManager: WindowManager
+              private var bubbleView: View? = null
+              private var menuView: View? = null
+              private lateinit var bubbleParams: WindowManager.LayoutParams
+              private lateinit var menuParams: WindowManager.LayoutParams
+              private var config = ToolConfig()
+              private var bubbleInitX = 0; private var bubbleInitY = 0
+              private var bubbleTouchX = 0f; private var bubbleTouchY = 0f
+              private var bubbleDragging = false
+              private var menuInitX = 0; private var menuInitY = 0
+              private var menuTouchX = 0f; private var menuTouchY = 0f
+              companion object {
+                  private const val CHANNEL_ID = "alphaxk_overlay"
+                  private const val NOTIF_ID = 6767
+                  private const val DRAG_THRESHOLD = 10
+                  const val ACTION_CONFIG_CHANGED = "com.alphaxk.pubgtool.CONFIG_CHANGED"
+              }
+              override fun onCreate() {
+                  super.onCreate()
+                  ConfigStore.init(this); config = ConfigStore.load()
+                  windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                      val ch = NotificationChannel(CHANNEL_ID, getString(R.string.notif_channel_name), NotificationManager.IMPORTANCE_LOW)
+                      getSystemService(NotificationManager::class.java).createNotificationChannel(ch)
+                  }
+                  startForeground(NOTIF_ID, NotificationCompat.Builder(this, CHANNEL_ID).setContentTitle(getString(R.string.notif_title)).setContentText(getString(R.string.notif_text)).setSmallIcon(android.R.drawable.ic_menu_manage).setOngoing(true).build())
+                  createBubble(); createMenu()
+              }
+              override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
+              override fun onBind(intent: Intent?): IBinder? = null
+              override fun onDestroy() { bubbleView?.let { runCatching { windowManager.removeView(it) } }; menuView?.let { runCatching { windowManager.removeView(it) } }; super.onDestroy() }
+              private fun overlayType(): Int = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY else WindowManager.LayoutParams.TYPE_PHONE
+              private fun overlayFlags(): Int = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+              private fun createBubble() {
+                  val bubble = LayoutInflater.from(this).inflate(R.layout.floating_bubble, null)
+                  bubbleView = bubble
+                  bubbleParams = WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT, overlayType(), overlayFlags(), PixelFormat.TRANSLUCENT).apply { gravity = Gravity.TOP or Gravity.START; x = 100; y = 300 }
+                  bubble.setOnTouchListener { _, event ->
+                      when (event.action) {
+                          MotionEvent.ACTION_DOWN -> { bubbleInitX = bubbleParams.x; bubbleInitY = bubbleParams.y; bubbleTouchX = event.rawX; bubbleTouchY = event.rawY; bubbleDragging = false; true }
+                          MotionEvent.ACTION_MOVE -> {
+                              val dx = event.rawX - bubbleTouchX; val dy = event.rawY - bubbleTouchY
+                              if (abs(dx) > DRAG_THRESHOLD || abs(dy) > DRAG_THRESHOLD) { bubbleDragging = true; bubbleParams.x = bubbleInitX + dx.toInt(); bubbleParams.y = bubbleInitY + dy.toInt(); windowManager.updateViewLayout(bubble, bubbleParams) }; true
+                          }
+                          MotionEvent.ACTION_UP -> { if (!bubbleDragging) toggleMenu(); true }
+                          else -> false
+                      }
+                  }
+                  windowManager.addView(bubble, bubbleParams)
+              }
+              private fun toggleMenu() { menuView?.let { mv -> mv.visibility = if (mv.visibility == View.VISIBLE) View.GONE else View.VISIBLE } }
+              private fun createMenu() {
+                  val menu = LayoutInflater.from(this).inflate(R.layout.floating_menu, null)
+                  menuView = menu; menu.visibility = View.GONE
+                  menuParams = WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT, overlayType(), overlayFlags(), PixelFormat.TRANSLUCENT).apply { gravity = Gravity.TOP or Gravity.START; x = 150; y = 350 }
+                  val dragHandle = menu.findViewById<View>(R.id.menu_drag_handle)
+                  dragHandle.setOnTouchListener { _, event ->
+                      when (event.action) {
+                          MotionEvent.ACTION_DOWN -> { menuInitX = menuParams.x; menuInitY = menuParams.y; menuTouchX = event.rawX; menuTouchY = event.rawY; true }
+                          MotionEvent.ACTION_MOVE -> {
+                              val dx = event.rawX - menuTouchX; val dy = event.rawY - menuTouchY
+                              if (abs(dx) > DRAG_THRESHOLD || abs(dy) > DRAG_THRESHOLD) { menuParams.x = menuInitX + dx.toInt(); menuParams.y = menuInitY + dy.toInt(); windowManager.updateViewLayout(menu, menuParams) }; true
+                          }
+                          else -> false
+                      }
+                  }
+                  val alphaSeek = menu.findViewById<SeekBar>(R.id.seek_alpha)
+                  val alphaLabel = menu.findViewById<TextView>(R.id.label_alpha)
+                  menu.alpha = config.menuAlpha
+                  alphaSeek.progress = ((config.menuAlpha - 0.3f) / 0.7f * 100).toInt()
+                  alphaLabel.text = getString(R.string.label_opacity, (config.menuAlpha * 100).toInt())
+                  alphaSeek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                      override fun onProgressChanged(sb: SeekBar?, progress: Int, fromUser: Boolean) {
+                          if (!fromUser) return
+                          val a = 0.3f + (progress / 100f) * 0.7f; config.menuAlpha = a; menu.alpha = a
+                          alphaLabel.text = getString(R.string.label_opacity, (a * 100).toInt()); ConfigStore.save(config)
+                      }
+                      override fun onStartTrackingTouch(sb: SeekBar?) {}
+                      override fun onStopTrackingTouch(sb: SeekBar?) {}
+                  })
+                  val espSwitch = menu.findViewById<Switch>(R.id.switch_esp)
+                  espSwitch.isChecked = config.espEnabled
+                  espSwitch.setOnCheckedChangeListener { _, c -> config.espEnabled = c; ConfigStore.save(config); notifyConfigChanged() }
+                  val aimSwitch = menu.findViewById<Switch>(R.id.switch_aimbot)
+                  aimSwitch.isChecked = config.aimbotEnabled
+                  aimSwitch.setOnCheckedChangeListener { _, c -> config.aimbotEnabled = c; ConfigStore.save(config); notifyConfigChanged() }
+                  val fovSeek = menu.findViewById<SeekBar>(R.id.seek_fov); val fovLabel = menu.findViewById<TextView>(R.id.label_fov)
+                  fovSeek.progress = ((config.aimFov - 1f) / 19f * 100).toInt(); fovLabel.text = getString(R.string.label_fov, config.aimFov)
+                  fovSeek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                      override fun onProgressChanged(sb: SeekBar?, progress: Int, fromUser: Boolean) { if (!fromUser) return; val f = 1f + (progress / 100f) * 19f; config.aimFov = f; fovLabel.text = getString(R.string.label_fov, f); ConfigStore.save(config); notifyConfigChanged() }
+                      override fun onStartTrackingTouch(sb: SeekBar?) {}
+                      override fun onStopTrackingTouch(sb: SeekBar?) {}
+                  })
+                  val smoothSeek = menu.findViewById<SeekBar>(R.id.seek_smoothing); val smoothLabel = menu.findViewById<TextView>(R.id.label_smoothing)
+                  smoothSeek.progress = (config.aimSmoothing * 100).toInt(); smoothLabel.text = getString(R.string.label_smoothing, (config.aimSmoothing * 100).toInt())
+                  smoothSeek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                      override fun onProgressChanged(sb: SeekBar?, progress: Int, fromUser: Boolean) { if (!fromUser) return; val s = progress / 100f; config.aimSmoothing = s; smoothLabel.text = getString(R.string.label_smoothing, (s * 100).toInt()); ConfigStore.save(config); notifyConfigChanged() }
+                      override fun onStartTrackingTouch(sb: SeekBar?) {}
+                      override fun onStopTrackingTouch(sb: SeekBar?) {}
+                  })
+                  val boneBtn = menu.findViewById<Button>(R.id.btn_bone)
+                  boneBtn.text = getString(if (config.bonePriority == 1) R.string.target_head else R.string.target_chest)
+                  boneBtn.setOnClickListener {
+                      config.bonePriority = if (config.bonePriority == 1) 0 else 1
+                      boneBtn.text = getString(if (config.bonePriority == 1) R.string.target_head else R.string.target_chest); ConfigStore.save(config); notifyConfigChanged()
+                  }
+                  menu.findViewById<Button>(R.id.btn_close).setOnClickListener { menu.visibility = View.GONE }
+                  windowManager.addView(menu, menuParams)
+              }
+              private fun notifyConfigChanged() {
+                  val intent = Intent(ACTION_CONFIG_CHANGED).apply {
+                      setPackage(packageName); putExtra("esp", config.espEnabled); putExtra("aimbot", config.aimbotEnabled); putExtra("fov", config.aimFov); putExtra("smoothing", config.aimSmoothing); putExtra("bone", config.bonePriority)
+                  }
+                  sendBroadcast(intent)
+              }
+          }
+          EOF
+
+      - name: Setup Gradle Wrapper
+        working-directory: android-app
+        run: gradle wrapper --gradle-version 8.2
+
+      - name: Grant execute permission
+        working-directory: android-app
+        run: chmod +x gradlew
+
+      - name: Build Debug APK
+        working-directory: android-app
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AlphaXK-Tool-APK
+          path: android-app/app/build/outputs/apk/debug/app-debug.apk
