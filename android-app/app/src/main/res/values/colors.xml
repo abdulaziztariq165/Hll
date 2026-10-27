@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg_dark">#FF0D0D1A</color>
+    <color name="accent_cyan">#FF00E5FF</color>
+    <color name="text_primary">#FFFFFFFF</color>
+    <color name="text_secondary">#FFDDDDDD</color>
+    <color name="danger_red">#FFFF4444</color>
+    <color name="menu_bg">#EE1A1A2E</color>
+    <color name="bubble_bg">#CC1A1A2E</color>
+    <color name="drag_handle_bg">#2200E5FF</color>
+</resources>
