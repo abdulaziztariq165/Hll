@@ -25,11 +25,17 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v4
         with:
-          # منع تحميل حزمة tools القديمة اللي اتمسحت
           packages: ''
 
       - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+        run: |
+          if [ -f gradlew ]; then
+            chmod +x gradlew
+          else
+            echo "gradlew not found, generating wrapper..."
+            gradle wrapper --gradle-version 8.2
+            chmod +x gradlew
+          fi
 
       - name: Build Debug APK
         run: ./gradlew assembleDebug --no-daemon --stacktrace
