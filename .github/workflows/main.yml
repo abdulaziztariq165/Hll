@@ -55,7 +55,7 @@ jobs:
           android {
               namespace 'com.alphaxk.pubgtool'
               compileSdk 34
-              defaultConfig { applicationId "com.alphaxk.pubgtool"; minSdk 23; targetSdk 34; versionCode 1; versionName "1.0" }
+              defaultConfig { applicationId "com.alphaxk.pubgtool"; minSdk 24; targetSdk 34; versionCode 1; versionName "1.0" }
               buildTypes { release { minifyEnabled false } }
               compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
               kotlinOptions { jvmTarget = '17' }
@@ -86,7 +86,7 @@ jobs:
                   <receiver android:name=".ConfigReceiver" android:exported="false">
                       <intent-filter><action android:name="com.alphaxk.pubgtool.CONFIG_CHANGED" /></intent-filter>
                   </receiver>
-                  <provider android:name="rikka.shizuku.ShizukuProvider" android:authorities="\${applicationId}.shizuku" android:multiprocess="false" android:enabled="true" android:exported="true" android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
+                  <provider android:name="rikka.shizuku.ShizukuProvider" android:authorities="${applicationId}.shizuku" android:multiprocess="false" android:enabled="true" android:exported="true" android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
               </application>
           </manifest>
           EOF
@@ -224,6 +224,7 @@ jobs:
           import android.widget.Toast
           import androidx.appcompat.app.AppCompatActivity
           import androidx.core.content.ContextCompat
+          import rikka.shizuku.Shizuku
           class MainActivity : AppCompatActivity() {
               private val overlayRequestCode = 1001
               private lateinit var statusText: TextView
@@ -232,7 +233,21 @@ jobs:
                   statusText = findViewById(R.id.status_text)
                   findViewById<Button>(R.id.btn_grant).setOnClickListener { requestOverlayPermission() }
                   findViewById<Button>(R.id.btn_start).setOnClickListener {
-                      if (canDrawOverlays()) startOverlayService() else { Toast.makeText(this, "يجب منح الصلاحية أولاً", Toast.LENGTH_LONG).show(); requestOverlayPermission() }
+                      if (!canDrawOverlays()) {
+                          Toast.makeText(this, "يجب منح الصلاحية أولاً", Toast.LENGTH_LONG).show()
+                          requestOverlayPermission()
+                          return@setOnClickListener
+                      }
+                      if (Shizuku.pingBinder()) {
+                          if (Shizuku.checkSelfPermission() == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                              startOverlayService()
+                          } else {
+                              Shizuku.requestPermission(1002)
+                          }
+                      } else {
+                          Toast.makeText(this, "Shizuku غير مشغل", Toast.LENGTH_SHORT).show()
+                          startOverlayService() // Still start overlay even without shizuku for ESP
+                      }
                   }
                   findViewById<Button>(R.id.btn_stop).setOnClickListener { stopService(Intent(this, OverlayService::class.java)); updateStatus() }
                   updateStatus()
@@ -240,7 +255,7 @@ jobs:
               override fun onResume() { super.onResume(); updateStatus() }
               private fun updateStatus() { statusText.text = getString(if (canDrawOverlays()) R.string.status_granted else R.string.status_denied) }
               private fun canDrawOverlays(): Boolean = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) Settings.canDrawOverlays(this) else true
-              private fun requestOverlayPermission() { if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) startActivityForResult(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:\$packageName")), overlayRequestCode) }
+              private fun requestOverlayPermission() { if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) startActivityForResult(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName")), overlayRequestCode) }
               private fun startOverlayService() { ContextCompat.startForegroundService(this, Intent(this, OverlayService::class.java)) }
           }
           EOF
